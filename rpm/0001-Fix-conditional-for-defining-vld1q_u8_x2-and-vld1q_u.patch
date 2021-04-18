@@ -1,0 +1,33 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Matti=20Lehtim=C3=A4ki?= <matti.lehtimaki@jolla.com>
+Date: Fri, 14 Jul 2023 16:09:41 +0300
+Subject: [PATCH] Fix conditional for defining vld1q_u8_x2 and vld1q_u16_x4 for
+ aarch64
+
+These were introduced in gcc version 8.5.
+---
+ aom_dsp/arm/mem_neon.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/aom_dsp/arm/mem_neon.h b/aom_dsp/arm/mem_neon.h
+index 73a512732673798a42f51ad2a44084b80726409e..6614e7970f019a1632d4ad57d1d292306c9e7fe0 100644
+--- a/aom_dsp/arm/mem_neon.h
++++ b/aom_dsp/arm/mem_neon.h
+@@ -55,7 +55,7 @@ static INLINE uint16x8x4_t vld1q_u16_x4(const uint16_t *ptr) {
+ }
+ 
+ #elif defined(__GNUC__) && !defined(__clang__)  // GCC 64-bit.
+-#if __GNUC__ < 8
++#if __GNUC__ < 8 || (__GNUC__ == 8 && __GNUC_MINOR__ < 5)
+ 
+ static INLINE uint8x16x2_t vld1q_u8_x2(const uint8_t *ptr) {
+   uint8x16x2_t res = { { vld1q_u8(ptr + 0 * 16), vld1q_u8(ptr + 1 * 16) } };
+@@ -67,7 +67,7 @@ static INLINE uint16x8x4_t vld1q_u16_x4(const uint16_t *ptr) {
+                          vld1q_u16(ptr + 2 * 8), vld1q_u16(ptr + 3 * 8) } };
+   return res;
+ }
+-#endif  // __GNUC__ < 8
++#endif  // __GNUC__ < 8 || (__GNUC__ == 8 && __GNUC_MINOR__ < 5)
+ 
+ #if __GNUC__ < 9
+ static INLINE uint8x16x3_t vld1q_u8_x3(const uint8_t *ptr) {
